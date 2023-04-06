@@ -28,7 +28,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           name: artifacts2
-          workflow: get_context.yml
+          workflow: get_context2.yml
           if_no_artifact_found: warn
           path: artifacts
       - name: Get Directory structure
