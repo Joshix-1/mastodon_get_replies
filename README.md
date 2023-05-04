@@ -2,36 +2,46 @@
 
 This GitHub repository provides a simple script that can pull missing posts into Mastodon using the Mastodon API. FediFetcher has no further dependencies, and can be run as either a GitHub Action, as a scheduled cron job, or a pre-packaged container. Here is what FediFetcher can do:
 
-1. It can pull missing remote replies to posts that are already on your server into your server. It can
+1. It can pull missing remote replies to posts that are already on your server into your server. Specifically, it can
    1. fetch missing replies to posts that users on your instance have already replied to,
    2. fetch missing replies to the most recent posts in your home timeline,
    3. fetch missing replies to your bookmarks.
+   4. fetch missing replies to your favourites.
 2. It can also backfill profiles on your instance. In particular it can
-   1. fetch missing recent posts from users that have recently appeared in your notifications,
-   1. fetch missing recent posts from users that you have recently followed,
-   2. fetch missing recent posts form users that have recently followed you,
-   3. fetch missing recent posts form users that have recently sent you a follow request.
+   1. fetch missing posts from users that have recently appeared in your notifications,
+   1. fetch missing posts from users that you have recently followed,
+   2. fetch missing posts form users that have recently followed you,
+   3. fetch missing posts form users that have recently sent you a follow request.
 
 Each part of this script is fully configurable, and you can completely disable parts that you are not interested in.
 
-FediFetcher will store posts it has already pulled in, as well as profiles it has already backfilled on disk, to prevent re-fetching the same info in subsequent executions.
+FediFetcher will store posts and profiles it has already pulled in on disk, to prevent re-fetching the same info in subsequent executions.
 
-**Be aware, that this script may run for a *very* long time.** This is particularly true, the first time this script runs, and/or if you enable all parts of this script. You should ensure that you take steps to prevent multiple overlapping executions of this script, as that will lead to unpleasant results.
+**Be aware, that this script may run for a *very* long time.** This is particularly true, the first time this script runs, and/or if you enable all parts of this script. You should ensure that you take steps to prevent multiple overlapping executions of this script, as that will lead to unpleasant results. There are detailed instructions for this below.
 
 For detailed information on the how and why, please read the [FediFetcher for Mastodon page](https://blog.thms.uk/fedifetcher?utm_source=github).
+
+## Supported servers
+
+FediFetcher makes use of the Mastodon API. It'll run against any instance implementing this API, and whilst it was built for Mastodon, it's been [confirmed working against Pleroma](https://fed.xnor.in/objects/6bd47928-704a-4cb8-82d6-87471d1b632f) as well.
+
+FediFetcher will pull in posts and profiles from any server that implements the Mastodon API, including Mastodon, Pleroma, Akkoma, Pixelfed, and probably others.
 
 ## Setup
 
 You can run FediFetcher either as a GitHub Action, as a scheduled cron job on your local machine/server, or from a pre-packed container.
+
 ### 1) Get the required access token:
 
 Regardless of how you want to run FediFetcher, you must first get an access token:
 
 1. In Mastodon go to Preferences > Development > New Application
-   1. give it a nice name
+   1. Give it a nice name
    2. Enable the required scopes for your options. You could tick `read` and `admin:read:accounts`, or see below for a list of which scopes are required for which options.
    3. Save
    4. Copy the value of `Your access token`
+
+If you are not a server admin, you do not have access to Preferences > Development. You can use [GetAuth for Mastodon](https://getauth.thms.uk) to generate an Access Token instead.
 
 ### 2.1) Configure and run the GitHub Action
 
@@ -59,7 +69,7 @@ If you want to, you can of course also run FediFetcher locally as a cron job:
 2. Install requirements: `pip install -r requirements.txt`
 3. Then simply run this script like so: `python find_posts.py --access-token=<TOKEN> --server=<SERVER>` etc.  (Read below, or run `python find_posts.py -h` to get a list of all options.)
  
-An example script can be found in the [`examples`](https://github.com/nanos/FediFetcher/tree/main/examples) folder.
+An [example script](./examples/FediFetcher.sh) can be found in the `examples` folder.
 
 When using a cronjob, we are using file based locking to avoid multiple overlapping executions of the script. The timeout period for the lock can be configured using `--lock-hours`.
 
@@ -78,7 +88,7 @@ The same rules for running this as a cron job apply to running the container: do
 
 Persistent files are stored in `/app/artifacts` within the container, so you may want to map this to a local folder on your system.
 
-An example Kubernetes CronJob for running the container is included in the [`examples`](https://github.com/nanos/FediFetcher/tree/main/examples) folder.
+An [example Kubernetes CronJob](./examples/k8s-cronjob.yaml) for running the container is included in the `examples` folder.
 
 ### Configuration options
 
@@ -100,11 +110,12 @@ Please find the list of all configuration options, including descriptions, below
 
 | Environment Variable Name | Command line flag | Required? | Notes |
 |:---------------------------------------------------|:----------------------------------------------------|-----------|:------|
-| -- | `--access-token` | Yes | The access token. If using GitHub action, this needs to be provided as a Secret called  `ACCESS_TOKEN` |
+| -- | `--access-token` | Yes | The access token. If using GitHub action, this needs to be provided as a Secret called  `ACCESS_TOKEN`. If running as a cron job or a container, you can supply this argument multiple times, to [fetch posts for multiple users](https://blog.thms.uk/2023/04/muli-user-support-for-fedifetcher) on your instance. |
 |`MASTODON_SERVER`|`--server`|Yes|The domain only of your mastodon server (without `https://` prefix) e.g. `mstdn.thms.uk`. |
 | `HOME_TIMELINE_LENGTH` | `--home-timeline-length` | No | Provide to fetch remote replies to posts in the API-Key owner's home timeline. Determines how many posts we'll fetch replies for. Recommended value: `200`.
 | `REPLY_INTERVAL_IN_HOURS` | `--reply-interval-in-hours` | No | Provide to fetch remote replies to posts that have received replies from users on your own instance. Determines how far back in time we'll go to find posts that have received replies. Recommend value: `0` (disabled). Requires an access token with `admin:read:accounts`.
 | `MAX_BOOKMARKS` | `--max-bookmarks` | No | Provide to fetch remote replies to any posts you have bookmarked. Determines how many of your bookmarks you want to get replies to. Recommended value: `80`. Requires an access token with `read:bookmarks` scope.
+| `MAX_FAVOURITES` | `--max-favourites` | No | Provide to fetch remote replies to any posts you have favourited. Determines how many of your favourites you want to get replies to. Recommended value: `40`. Requires an access token with `read:favourites` scope.
 | `MAX_FOLLOWINGS` | `--max-followings` | No | Provide to backfill profiles for your most recent followings. Determines how many of your last followings you want to backfill. Recommended value: `80`.
 | `MAX_FOLLOWERS` | `--max-followers` | No | Provide to backfill profiles for your most recent followers. Determines how many of your last followers you want to backfill. Recommended value: `80`.
 | `MAX_FOLLOW_REQUESTS` | `--max-follow-requests` | No | Provide to backfill profiles for the API key owner's most recent pending follow requests. Determines how many of your last follow requests you want to backfill. Recommended value: `80`.
@@ -120,6 +131,12 @@ Please find the list of all configuration options, including descriptions, below
 | `ON_DONE` | `--on-done` | No | Optionally provide a callback URL that will be called when processing is finished.  A query parameter `rid={uuid}` will automatically be appended to uniquely identify each execution. This can be used to monitor your script using a service such as healthchecks.io.
 | `ON_FAIL` | `--on-fail` | No | Optionally provide a callback URL that will be called when processing has failed.  A query parameter `rid={uuid}` will automatically be appended to uniquely identify each execution. This can be used to monitor your script using a service such as healthchecks.io.
 
+#### Multi User support
+
+If you wish to [run FediFetcher for multiple users on your instance](https://blog.thms.uk/2023/04/muli-user-support-for-fedifetcher?utm_source=github), you can supply the `--access-token` argument multiple times, with different access tokens for different users. That will allow you to fetch replies and/or backfill profiles for multiple users on your account. Have a look at the [sample script provided](./examples/FediFetcher-multiple-users.sh).
+
+This is only supported when running FediFetcher as cron job, or container. Multi-user support is not available when running FediFetcher as GitHub Action.
+
 #### Required Access Token Scopes
 
  - For all actions, your access token must include these scopes:
@@ -132,6 +149,8 @@ Please find the list of all configuration options, including descriptions, below
    - `read:follows`
  - If you are supplying `MAX_BOOKMARKS` / `--max-bookmarks` you must additionally enable this scope:
    - `read:bookmarks`
+ - If you are supplying `MAX_FAVOURITES` / `--max-favourites` you must additionally enable this scope:
+   - `read:favourites`
  - If you are supplying `FROM_NOTIFICATIONS` / `--from-notifications` you must additionally enable this scope:
    - `read:notifications`
 
