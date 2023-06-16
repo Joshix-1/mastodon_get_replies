@@ -1,6 +1,14 @@
 {
-  "server": "fosspri.de",
-  "home-timeline-length": 200,
-  "max-followings": 80,
-  "from-notifications": 1
+    "server": "fosspri.de",
+    "home-timeline-length": 200,
+    "max-followings": 80,
+    "from-notifications": 1,
+    "remember-users-for-hours": 150,
+    "backfill-mentioned-users": 1,
+    "backfill-with-context": 1,
+    "reply-interval-in-hours": 0,
+    "max-follow-requests": 80,
+    "max-followers": 80,
+    "max-favourites": 40,
+    "max-bookmarks": 80
 }
