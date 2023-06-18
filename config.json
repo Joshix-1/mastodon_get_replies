@@ -1,6 +1,6 @@
 {
     "server": "fosspri.de",
-    "home-timeline-length": 200,
+    "home-timeline-length": 150,
     "max-followings": 80,
     "from-notifications": 1,
     "remember-users-for-hours": 150,
