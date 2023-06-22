@@ -5,7 +5,7 @@
     "from-notifications": 1,
     "remember-users-for-hours": 200,
     "backfill-mentioned-users": 1,
-    "backfill-with-context": 1,
+    "backfill-with-context": 0,
     "reply-interval-in-hours": 0,
     "max-follow-requests": 40,
     "max-followers": 40,
