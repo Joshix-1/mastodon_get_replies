@@ -1,9 +1,9 @@
 {
     "server": "fosspri.de",
     "home-timeline-length": 0,
-    "max-followings": 80,
+    "max-followings": 100,
     "from-notifications": 0,
-    "remember-users-for-hours": 48,
+    "remember-users-for-hours": 24,
     "backfill-mentioned-users": 1,
     "backfill-with-context": 1,
     "reply-interval-in-hours": 24,
