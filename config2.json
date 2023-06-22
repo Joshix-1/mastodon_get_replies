@@ -6,7 +6,7 @@
     "remember-users-for-hours": 24,
     "backfill-mentioned-users": 1,
     "backfill-with-context": 1,
-    "reply-interval-in-hours": 24,
+    "reply-interval-in-hours": 50,
     "max-follow-requests": 0,
     "max-followers": 0,
     "max-favourites": 0,
