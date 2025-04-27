@@ -10,6 +10,8 @@ jobs:
   run:
     runs-on: ubuntu-latest
     environment: mastodon
+    permissions:
+      contents: write
     steps:
       - name: Checkout original repository
         uses: actions/checkout@v4
